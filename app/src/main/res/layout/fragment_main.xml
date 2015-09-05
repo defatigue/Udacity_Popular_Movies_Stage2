@@ -1,0 +1,19 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+android:layout_height="match_parent" tools:context=".MainActivityFragment"
+android:id="@+id/fragment_frame_layout">
+
+
+    <GridView
+        android:id="@+id/grid_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:columnWidth="80dp"
+        android:numColumns="auto_fit"
+        android:verticalSpacing="2dp"
+        android:stretchMode="columnWidth"
+        android:gravity="center"
+
+        />
+
+</FrameLayout>
