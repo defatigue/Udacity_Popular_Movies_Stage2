@@ -74,7 +74,7 @@ public class MainActivityFragment extends Fragment {
 
         //Check that there exists an internet connection on the phone
         ConnectivityManager connMgr = (ConnectivityManager)
-                getActivity().getSystemService(getActivity().CONNECTIVITY_SERVICE);
+                getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.isConnected()) {
         //Send current sort preference to background task
@@ -129,7 +129,7 @@ public class MainActivityFragment extends Fragment {
                         .appendQueryParameter(QUERY_PARAM, sort_by)
                         .appendQueryParameter(API_KEY, "INSERT API KEY")
                         .build().toString();
-            Log.v(LOG_TAG, "URI " + my_uri);
+            //Log.v(LOG_TAG, "URI " + my_uri);
 
 
             try {

@@ -10,7 +10,7 @@
     <!-- main activity action bar styles -->
     <style name="ActionBar.Solid.Sunshine.NoTitle" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
         <item name="displayOptions">useLogo|showHome</item>
-        <item name="logo">@mipmap/ic_launcher</item>
+        <item name="logo">@drawable/large_movie_poster</item>
     </style>
 
     <style name="CodeFont" parent="@android:style/TextAppearance.Medium">
