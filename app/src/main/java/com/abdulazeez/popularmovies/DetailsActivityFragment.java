@@ -35,6 +35,8 @@ public class DetailsActivityFragment extends Fragment {
     TextView original_title, overview, vote_average, release_date;
     ImageView iv_poster;
     View rootView;
+    Bitmap mIcon_val = null;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -54,14 +56,20 @@ public class DetailsActivityFragment extends Fragment {
         overview.setText(intent.getStringExtra("overview"));
         vote_average.setText(" "+intent.getStringExtra("vote_average"));
         release_date.setText(" " + intent.getStringExtra("release_date"));
-        new GetImageTask(iv_poster).execute(intent.getStringExtra("backdrop").toString());
 
+        if(savedInstanceState != null){
+            mIcon_val = savedInstanceState.getParcelable("mIcon_val");
+            iv_poster.setImageBitmap(mIcon_val);
+        }
+        else {
+            new GetImageTask(iv_poster).execute(intent.getStringExtra("backdrop").toString());
+        }
 
                 return rootView;
     }
 
     class GetImageTask extends AsyncTask<String, Void, Bitmap>{
-        private ImageView bmImage;
+        ImageView bmImage;
 
         ProgressDialog progress = new ProgressDialog(getActivity());
 
@@ -72,7 +80,7 @@ public class DetailsActivityFragment extends Fragment {
 
         @Override
         protected Bitmap doInBackground(String... val) {
-            Bitmap mIcon_val = null;
+
             final String BASE_URL = "http://image.tmdb.org/t/p/w342/";
             String ret = val[0];
             try {
@@ -112,5 +120,11 @@ public class DetailsActivityFragment extends Fragment {
             progress.dismiss();
             bmImage.setImageBitmap(bitmap);
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelable("mIcon_val", mIcon_val);
+        super.onSaveInstanceState(outState);
     }
 }

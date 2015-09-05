@@ -9,6 +9,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -52,11 +53,11 @@ public class MainActivityFragment extends Fragment {
     ImageView iv_posters;
     View rootView;
     GridView gridview;
-    List<String> backdrop;
-    List<String> original_title;
-    List<String> overview;
-    List<String> vote_average;
-    List<String> release_date;
+    ArrayList<String> backdrop = new ArrayList<>();
+    ArrayList<String> original_title = new ArrayList<>();
+    ArrayList<String> overview = new ArrayList<>();
+    ArrayList<String> vote_average = new ArrayList<>();
+    ArrayList<String> release_date = new ArrayList<>();
 
     public MainActivityFragment() {
     }
@@ -68,23 +69,35 @@ public class MainActivityFragment extends Fragment {
         gridview = (GridView) rootView.findViewById(R.id.grid_view);
         iv_posters = (ImageView) rootView.findViewById(R.id.iv_posters);
 
+
         //Get the default/saved settings data
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sort = sp.getString("sort_list", "popularity.desc");
+if(savedInstanceState != null){
+    //List<String> backdrop = new ArrayList<>();
+    backdrop = savedInstanceState.getStringArrayList("backdrop");
+    original_title = savedInstanceState.getStringArrayList("original_title");
+    overview = savedInstanceState.getStringArrayList("overview");
+    vote_average = savedInstanceState.getStringArrayList("vote_average");
+    release_date = savedInstanceState.getStringArrayList("release_date");
+    mMovieAdapter = new ImageAdapter(getActivity(), backdrop);
+    gridview.setAdapter(mMovieAdapter);
 
-        //Check that there exists an internet connection on the phone
-        ConnectivityManager connMgr = (ConnectivityManager)
-                getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        if (networkInfo != null && networkInfo.isConnected()) {
+}
+            else {
+    //Check that there exists an internet connection on the phone
+    ConnectivityManager connMgr = (ConnectivityManager)
+            getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+    NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+    if (networkInfo != null && networkInfo.isConnected()) {
         //Send current sort preference to background task
-           new FetchMovieTask().execute(sort);
-        } else {
-            Toast.makeText(getActivity(), "No Internet Connectivity Detected",
-                             Toast.LENGTH_SHORT).show();
+        new FetchMovieTask().execute(sort);
+    } else {
+        Toast.makeText(getActivity(), "No Internet Connectivity Detected",
+                Toast.LENGTH_SHORT).show();
 
-        }
-
+    }
+}
 
             gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v,
@@ -108,7 +121,7 @@ public class MainActivityFragment extends Fragment {
     //Fetch data from internet using AsyncTask
     public class FetchMovieTask extends AsyncTask<String, Void, List<String>> {
         final String LOG_TAG = MainActivityFragment.class.getSimpleName();
-        ProgressDialog progress = new ProgressDialog(getActivity());
+        ProgressDialog progress;
 
         @Override
         protected List<String> doInBackground(String... view) {
@@ -127,7 +140,7 @@ public class MainActivityFragment extends Fragment {
             //Building the URI
             String my_uri = Uri.parse(BASE_URL).buildUpon()
                         .appendQueryParameter(QUERY_PARAM, sort_by)
-                        .appendQueryParameter(API_KEY, "INSERT API KEY")
+                        .appendQueryParameter(API_KEY, "INSERT_API_KEY")
                         .build().toString();
             //Log.v(LOG_TAG, "URI " + my_uri);
 
@@ -140,11 +153,7 @@ public class MainActivityFragment extends Fragment {
                 is = http.getInputStream();
                 br = new BufferedReader(new InputStreamReader(is));
                 StringBuilder sb = new StringBuilder();
-                backdrop = new ArrayList<>();
-                original_title = new ArrayList<>();
-                overview = new ArrayList<>();
-                vote_average = new ArrayList<>();
-                release_date = new ArrayList<>();
+
                 String line;
                 while((line = br.readLine()) != null){
                     sb.append(line).append("\n");
@@ -199,16 +208,32 @@ public class MainActivityFragment extends Fragment {
         @Override
         protected void onPostExecute(List<String> string) {
             super.onPostExecute(string);
-            progress.dismiss();
             mMovieAdapter = new ImageAdapter(getActivity(), string);
             gridview.setAdapter(mMovieAdapter);
+            progress.dismiss();
         }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            progress = new ProgressDialog(getActivity());
             progress.setMessage("Loading... Please wait.");
             progress.show();
         }
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+
+      outState.putStringArrayList("backdrop", backdrop);
+        outState.putStringArrayList("original_title", original_title);
+        outState.putStringArrayList("overview", overview);
+        outState.putStringArrayList("vote_average", vote_average);
+        outState.putStringArrayList("release_date", release_date);
+
+
+        super.onSaveInstanceState(outState);
+    }
+
+
 }
