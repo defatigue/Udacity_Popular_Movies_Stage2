@@ -7,12 +7,6 @@
         <item name="colorPrimaryDark">@color/sunshine_dark_blue</item>
     </style>
 
-    <!-- main activity action bar styles -->
-    <style name="ActionBar.Solid.Sunshine.NoTitle" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
-        <item name="displayOptions">useLogo|showHome</item>
-        <item name="logo">@drawable/large_movie_poster</item>
-    </style>
-
     <style name="CodeFont" parent="@android:style/TextAppearance.Medium">
         <item name="android:layout_width">fill_parent</item>
         <item name="android:layout_height">wrap_content</item>
