@@ -1,6 +1,6 @@
 # Popular_Movies Udacity Assignment
 
-Popular Movies - Stage 1
+Popular Movies - Stage 2
 
 This is an Assignment Project for the Udacity Android Training.
 
