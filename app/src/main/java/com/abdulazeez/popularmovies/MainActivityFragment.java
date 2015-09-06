@@ -208,9 +208,11 @@ if(savedInstanceState != null){
         @Override
         protected void onPostExecute(List<String> string) {
             super.onPostExecute(string);
+            if(progress != null)
+                progress.dismiss();
             mMovieAdapter = new ImageAdapter(getActivity(), string);
             gridview.setAdapter(mMovieAdapter);
-            progress.dismiss();
+
         }
 
         @Override

@@ -51,7 +51,7 @@ public class DetailsActivityFragment extends Fragment {
         vote_average = (TextView) rootView.findViewById(R.id.vote_average);
         release_date = (TextView) rootView.findViewById(R.id.release_date);
         Intent intent = getActivity().getIntent();
-        //new GetImageTask(iv_poster).execute(intent.getStringExtra("backdrop").toString());
+        /* new GetImageTask(iv_poster).execute(intent.getStringExtra("backdrop").toString()); */
         original_title.setText(intent.getStringExtra("original_title"));
         overview.setText(intent.getStringExtra("overview"));
         vote_average.setText(" "+intent.getStringExtra("vote_average"));
