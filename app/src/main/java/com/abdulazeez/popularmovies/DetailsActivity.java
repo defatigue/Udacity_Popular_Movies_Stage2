@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.abdulazeez.popularmovies.data.MovieProvider;
+
 public class DetailsActivity extends AppCompatActivity {
 
     @Override
@@ -22,6 +24,12 @@ public class DetailsActivity extends AppCompatActivity {
         return true;
     }
 
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -36,6 +44,11 @@ public class DetailsActivity extends AppCompatActivity {
             startActivity(intent);
             return true;
         }
+       /* if(id == android.R.id.home){
+            onBackPressed();
+            finish();
+            return true;
+        }*/
 
         return super.onOptionsItemSelected(item);
     }
