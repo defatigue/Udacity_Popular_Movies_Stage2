@@ -128,7 +128,7 @@ public class DetailsActivityFragment extends Fragment {
                 //putStringArrayList("favorites", favorites);*/
                 Fields fields = new Fields(movie_id, original_title.getText().toString(), overview.getText().toString(),
                         vote_average.getText().toString(), release_date.getText().toString());
-                Log.v("Button.OnClick", "See Favorites " + fields.toString());
+                Log.v("Button.OnClick", "See JSON Favorites " + fields.toString());
 
                 sharedPreference.addFavorite(getActivity(), fields);
                 Toast.makeText(getActivity(),
