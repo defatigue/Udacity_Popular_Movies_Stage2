@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -13,6 +14,9 @@ import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
@@ -55,11 +59,15 @@ import java.util.Set;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class DetailsActivityFragment extends Fragment {
+public class DetailsActivityFragment extends Fragment{
 
     public DetailsActivityFragment() {
-                    setHasOptionsMenu(true);
+        setHasOptionsMenu(true);
     }
+
+    private static final int DETAIL_LOADER = 0;
+
+    private static final String LOG_TAG = DetailsActivityFragment.class.getSimpleName();
 
     TextView original_title, overview, vote_average, release_date;
     ListView lv_trailer;
@@ -67,14 +75,14 @@ public class DetailsActivityFragment extends Fragment {
     ImageView iv_poster;
     View rootView;
     Bitmap mIcon_val = null;
-    List<String> trailer_id = new ArrayList<>();
-    static List<String> trailer_key = new ArrayList<>();
-    List<String> trailer_name = new ArrayList<>();
+    ArrayList<String> trailer_id = new ArrayList<>();
+    ArrayList<String> trailer_key = new ArrayList<>();
+    ArrayList<String> trailer_name = new ArrayList<>();
     String backdrop;
-    List<String> review_id = new ArrayList<>();
-    List<String> review_author = new ArrayList<>();
-    List<String> review_content = new ArrayList<>();
-    List<String> review_url = new ArrayList<>();
+    ArrayList<String> review_id = new ArrayList<>();
+    ArrayList<String> review_author = new ArrayList<>();
+    ArrayList<String> review_content = new ArrayList<>();
+    ArrayList<String> review_url = new ArrayList<>();
     ListAdapter adapter;
     String movie_id;
     Button btn_favorite;
@@ -96,7 +104,6 @@ public class DetailsActivityFragment extends Fragment {
         btn_favorite = (Button) rootView.findViewById(R.id.btn_favorite);
 
 
-
         overview = (TextView) rootView.findViewById(R.id.overview);
         vote_average = (TextView) rootView.findViewById(R.id.vote_average);
         release_date = (TextView) rootView.findViewById(R.id.release_date);
@@ -106,7 +113,7 @@ public class DetailsActivityFragment extends Fragment {
         //Log.v("DeatailActivity", "movie_id " + movie_id);
         original_title.setText(intent.getStringExtra("original_title"));
         overview.setText(intent.getStringExtra("overview"));
-        vote_average.setText(" "+intent.getStringExtra("vote_average"));
+        vote_average.setText(" " + intent.getStringExtra("vote_average"));
         release_date.setText(" " + intent.getStringExtra("release_date"));
         backdrop = intent.getStringExtra("backdrop").toString();
         lv_trailer = (ListView) rootView.findViewById(R.id.lv_trailers);
@@ -132,45 +139,53 @@ public class DetailsActivityFragment extends Fragment {
         });
 
 
-        if(savedInstanceState != null){
+        if (savedInstanceState != null) {
             mIcon_val = savedInstanceState.getParcelable("mIcon_val");
             iv_poster.setImageBitmap(mIcon_val);
-        }
-        else {
+                trailer_id = savedInstanceState.getStringArrayList("trailer_id");
+                trailer_key = savedInstanceState.getStringArrayList("trailer_key");
+                trailer_name = savedInstanceState.getStringArrayList("trailer_name");
+            adapter = new ArrayAdapter(getActivity(), R.layout.list_text, R.id.tv_list, trailer_name);
+            lv_trailer.setAdapter(adapter);
+                review_id = savedInstanceState.getStringArrayList("review_id");
+                review_author = savedInstanceState.getStringArrayList("review_author");
+                review_content = savedInstanceState.getStringArrayList("review_content");
+                review_url = savedInstanceState.getStringArrayList("review_url");
+            adapter = new ArrayAdapter(getActivity(), R.layout.list_text, R.id.tv_list, review_content);
+            lv_reviews.setAdapter(adapter);
+            } else {
             new GetImageTask(iv_poster).execute(intent.getStringExtra("backdrop").toString());
             new GetTrailerTask().execute(movie_id);
             new GetReviewTask().execute(movie_id);
         }
 
-      lv_trailer.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    Uri uri = Uri.parse("https://www.youtube.com/watch?v=").buildUpon()
-                            .appendQueryParameter("v", trailer_key.get(position))
-                            .build();
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setData(uri);
-                    if(intent.resolveActivity(getActivity().getPackageManager()) != null) {
-                        startActivity(intent);
-                    }
-                    else
-                        Log.e("DetailsActivityFragment", "Could not resolve URI");
-                }
-            });
+        lv_trailer.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Uri uri = Uri.parse("https://www.youtube.com/watch?v=").buildUpon()
+                        .appendQueryParameter("v", trailer_key.get(position))
+                        .build();
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(uri);
+                if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
+                    startActivity(intent);
+                } else
+                    Log.e("DetailsActivityFragment", "Could not resolve URI");
+            }
+        });
 
 
-                return rootView;
+        return rootView;
     }
 
 
-    class GetReviewTask extends AsyncTask<String, Void, List<String>>{
-
+    class GetReviewTask extends AsyncTask<String, Void, List<String>> {
 
 
         @Override
         protected List<String> doInBackground(String... val) {
             String ret = val[0];
-            final String BASE_URL = "http://api.themoviedb.org/3/movie/"+ret+"/reviews?";
+            final String BASE_URL = "http://api.themoviedb.org/3/movie/" + ret + "/reviews?";
             final String API_KEY = "api_key";
             final String ID = "id";
             final String AUTHOR = "author";
@@ -199,7 +214,7 @@ public class DetailsActivityFragment extends Fragment {
                 StringBuilder sb = new StringBuilder();
                 String line;
 
-                while((line = br.readLine()) !=null){
+                while ((line = br.readLine()) != null) {
                     sb.append(line)
                             .append("\n");
                 }
@@ -207,7 +222,7 @@ public class DetailsActivityFragment extends Fragment {
 
                 JSONObject obj = new JSONObject(review_json);
                 JSONArray result = obj.getJSONArray("results");
-                for(int i = 0; i<result.length(); i++) {
+                for (int i = 0; i < result.length(); i++) {
                     JSONObject obj2 = result.getJSONObject(i);
                     review_id_string = obj2.getString(ID);
                     review_id.add(review_id_string);
@@ -223,12 +238,11 @@ public class DetailsActivityFragment extends Fragment {
                     //Log.v("BackgroundTask", review_url.get(i));
                 }
 
-            }catch(MalformedURLException e)
-            {
-                Log.e("Async", "MalformedURLException",e);
+            } catch (MalformedURLException e) {
+                Log.e("Async", "MalformedURLException", e);
 
             } catch (IOException e) {
-                Log.e("Async", "IOException",e);
+                Log.e("Async", "IOException", e);
             } catch (JSONException e) {
                 Log.e("Async", "JSONException", e);
             } finally {
@@ -242,20 +256,19 @@ public class DetailsActivityFragment extends Fragment {
             super.onPostExecute(strings);
 
             adapter = new ArrayAdapter(getActivity(), R.layout.list_text, R.id.tv_list, strings);
-            Log.v("BackgroundTask", " "+strings);
+            Log.v("BackgroundTask", " " + strings);
             lv_reviews.setAdapter(adapter);
         }
     }
 
 
-    class GetTrailerTask extends AsyncTask<String, Void, List<String>>{
-
+    class GetTrailerTask extends AsyncTask<String, Void, List<String>> {
 
 
         @Override
         protected List<String> doInBackground(String... val) {
             String ret = val[0];
-            final String BASE_URL = "http://api.themoviedb.org/3/movie/"+ret+"/videos?";
+            final String BASE_URL = "http://api.themoviedb.org/3/movie/" + ret + "/videos?";
             final String API_KEY = "api_key";
             final String ID = "id";
             final String KEY = "key";
@@ -264,10 +277,10 @@ public class DetailsActivityFragment extends Fragment {
             String id, key, name;
 
 
-             try {
+            try {
                 String new_url = Uri.parse(BASE_URL).buildUpon()
-                                .appendQueryParameter(API_KEY, "173bbb14e0161501f7da931746c0d538")
-                                .build().toString();
+                        .appendQueryParameter(API_KEY, "173bbb14e0161501f7da931746c0d538")
+                        .build().toString();
                 //Log.v("bitmap", new_url.toString());
                 URL url = new URL(new_url);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -283,15 +296,15 @@ public class DetailsActivityFragment extends Fragment {
                 StringBuilder sb = new StringBuilder();
                 String line = null;
 
-                while((line = br.readLine()) !=null){
+                while ((line = br.readLine()) != null) {
                     sb.append(line)
                             .append("\n");
-                  }
+                }
                 trailer_json = sb.toString();
 
                 JSONObject obj = new JSONObject(trailer_json);
                 JSONArray result = obj.getJSONArray("results");
-                for(int i = 0; i<result.length(); i++) {
+                for (int i = 0; i < result.length(); i++) {
                     JSONObject obj2 = result.getJSONObject(i);
                     id = obj2.getString(ID);
                     trailer_id.add(id);
@@ -302,16 +315,15 @@ public class DetailsActivityFragment extends Fragment {
                     name = obj2.getString(NAME);
                     trailer_name.add(name);
                     //Log.v("BackgroundTask", trailer_name.get(i));
-                  }
+                }
 
-            }catch(MalformedURLException e)
-            {
-                Log.e("Async", "MalformedURLException",e);
+            } catch (MalformedURLException e) {
+                Log.e("Async", "MalformedURLException", e);
 
             } catch (IOException e) {
-                Log.e("Async", "IOException",e);
+                Log.e("Async", "IOException", e);
             } catch (JSONException e) {
-                 Log.e("Async", "JSONException", e);
+                Log.e("Async", "JSONException", e);
             } finally {
             }
 
@@ -323,12 +335,12 @@ public class DetailsActivityFragment extends Fragment {
             super.onPostExecute(strings);
 
             adapter = new ArrayAdapter(getActivity(), R.layout.list_text, R.id.tv_list, strings);
-            Log.v("BackgroundTask", " "+strings);
+            Log.v("BackgroundTask", " " + strings);
             lv_trailer.setAdapter(adapter);
         }
     }
 
-    class GetImageTask extends AsyncTask<String, Void, Bitmap>{
+    class GetImageTask extends AsyncTask<String, Void, Bitmap> {
         ImageView bmImage;
 
         ProgressDialog progress = new ProgressDialog(getActivity());
@@ -352,14 +364,12 @@ public class DetailsActivityFragment extends Fragment {
                 mIcon_val = BitmapFactory.decodeStream(in);
 
                 //return mIcon_val;
-            }catch(MalformedURLException e)
-            {
-            Log.e("Async", "MalformedURLException",e);
+            } catch (MalformedURLException e) {
+                Log.e("Async", "MalformedURLException", e);
 
             } catch (IOException e) {
-                Log.e("Async", "IOException",e);
-            }
-            finally {
+                Log.e("Async", "IOException", e);
+            } finally {
             }
 
             //iv_poster.setImageBitmap(mIcon_val);
@@ -385,6 +395,13 @@ public class DetailsActivityFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putParcelable("mIcon_val", mIcon_val);
+        outState.putStringArrayList("trailer_id", trailer_id);
+        outState.putStringArrayList("trailer_key", trailer_key);
+        outState.putStringArrayList("trailer_name", trailer_name);
+        outState.putStringArrayList("review_id", review_id);
+        outState.putStringArrayList("review_author", review_author);
+        outState.putStringArrayList("review_content", review_content);
+        outState.putStringArrayList("review_url", review_url);
         super.onSaveInstanceState(outState);
     }
 
@@ -395,33 +412,36 @@ public class DetailsActivityFragment extends Fragment {
         inflater.inflate(R.menu.menu_detail_fragment, menu);
 
         // Retrieve the share menu item
-                   menuItem = menu.findItem(R.id.menu_item_share);
+        menuItem = menu.findItem(R.id.menu_item_share);
 
         // Get the provider and hold onto it to set/change the share intent.
-                    mShareActionProvider =
-                                    (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
+        mShareActionProvider =
+                (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
 
-                            // Attach an intent to this ShareActionProvider.  You can update this at any time,
-                                    // like when the user selects a new piece of data they might like to share.
-                                            if (mShareActionProvider != null ) {
-                            mShareActionProvider.setShareIntent(createShareIntent());
-                        } else {
-                            Log.d("ShareIntent", "Share Action Provider is null?");
-                        }
+        // Attach an intent to this ShareActionProvider.  You can update this at any time,
+        // like when the user selects a new piece of data they might like to share.
+        if (mShareActionProvider != null) {
+            mShareActionProvider.setShareIntent(createShareIntent());
+        } else {
+            Log.d("ShareIntent", "Share Action Provider is null?");
+        }
     }
 
     private Intent createShareIntent() {
-        Log.v("TrailerKey", " "+trailer_key.get(0));
-                    Uri uri = Uri.parse("https://www.youtube.com/watch?v=").buildUpon()
-                            .appendQueryParameter("v", trailer_key.get(0))
-                            .build();
+        Log.v("TrailerKey", " " + trailer_key.get(0));
+        Uri uri = Uri.parse("https://www.youtube.com/watch?v=").buildUpon()
+                .appendQueryParameter("v", trailer_key.get(0))
+                .build();
 
-                    Intent shareIntent = new Intent(Intent.ACTION_VIEW);
-                    //shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
-                    //shareIntent.setType("video/*");
-                    shareIntent.setData(uri);
-                    //shareIntent.putExtra(Intent.EXTRA_TEXT,
-                               //     mForecastStr + FORECAST_SHARE_HASHTAG);
-                   return shareIntent;
-                }
-}
+        Intent shareIntent = new Intent(Intent.ACTION_VIEW);
+        //shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        //shareIntent.setType("video/*");
+        shareIntent.setData(uri);
+        //shareIntent.putExtra(Intent.EXTRA_TEXT,
+        //     mForecastStr + FORECAST_SHARE_HASHTAG);
+        return shareIntent;
+    }
+
+
+    }
+
