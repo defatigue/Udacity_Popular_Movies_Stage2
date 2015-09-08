@@ -197,7 +197,7 @@ public class DetailsActivityFragment extends Fragment{
 
             try {
                 String new_url = Uri.parse(BASE_URL).buildUpon()
-                        .appendQueryParameter(API_KEY, "173bbb14e0161501f7da931746c0d538")
+                        .appendQueryParameter(API_KEY, "API_KEY")
                         .build().toString();
                 //Log.v("bitmap", new_url.toString());
                 URL url = new URL(new_url);
@@ -279,7 +279,7 @@ public class DetailsActivityFragment extends Fragment{
 
             try {
                 String new_url = Uri.parse(BASE_URL).buildUpon()
-                        .appendQueryParameter(API_KEY, "173bbb14e0161501f7da931746c0d538")
+                        .appendQueryParameter(API_KEY, "API_KEY")
                         .build().toString();
                 //Log.v("bitmap", new_url.toString());
                 URL url = new URL(new_url);
@@ -434,11 +434,7 @@ public class DetailsActivityFragment extends Fragment{
                 .build();
 
         Intent shareIntent = new Intent(Intent.ACTION_VIEW);
-        //shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
-        //shareIntent.setType("video/*");
         shareIntent.setData(uri);
-        //shareIntent.putExtra(Intent.EXTRA_TEXT,
-        //     mForecastStr + FORECAST_SHARE_HASHTAG);
         return shareIntent;
     }
 

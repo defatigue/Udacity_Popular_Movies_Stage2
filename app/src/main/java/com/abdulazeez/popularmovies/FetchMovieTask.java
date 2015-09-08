@@ -105,8 +105,7 @@ public class FetchMovieTask extends AsyncTask<String, Void, List<String>> {
         //Building the URI
         String my_uri = Uri.parse(BASE_URL).buildUpon()
                 .appendQueryParameter(QUERY_PARAM, sort_by)
-                        //.appendQueryParameter(API_KEY, "INSERT_API_KEY")
-                .appendQueryParameter(API_KEY, "173bbb14e0161501f7da931746c0d538")
+                        .appendQueryParameter(API_KEY, "INSERT_API_KEY")
                 .build().toString();
         //Log.v(LOG_TAG, "URI " + my_uri);
 
@@ -129,7 +128,6 @@ public class FetchMovieTask extends AsyncTask<String, Void, List<String>> {
             JSONObject obj = new JSONObject(movieJson);
             JSONArray jarray = obj.getJSONArray("results");
             Vector<ContentValues> cVVector = new Vector<>(jarray.length());
-            //Log.v(LOG_TAG, "jsonArray "+jarray);
             String backdrop_text;
             String original_title_text;
             String overview_text;
@@ -158,29 +156,10 @@ public class FetchMovieTask extends AsyncTask<String, Void, List<String>> {
                 id_text = ret.getString("id");
                 movie_id.add(id_text);
                 movieValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, id_text);
-                //Log.v(LOG_TAG, "json "+backdrop);
-                //cVVector.add(movieValues);
                 cv[i] = movieValues;
             }
 
-            //Uri movie_uri = MovieContract.MovieEntry.CONTENT_URI;
-            //Log.v("ContentView", "Get  " + movie_uri);
-            //Log.v("ContentView", "Get  " + mContext);
-            //MovieProvider mP = new MovieProvider();
-           // if ( cVVector.size() > 0 ) {
-                //for(int i = 0; i<cv.length; i++){
-                    //cv[i] = cVVector.get(i);
 
-                    //mP.insert(movie_uri, cv[i]);
-
-               //}
-                // Student: call bulkInsert to add the weatherEntries to the database here
-            //Uri movie_uri = Uri.parse("content://com.abdulazeez.popularmovies/movie").buildUpon().build();
-               // Uri movie_uri = MovieContract.MovieEntry.CONTENT_URI;
-                //Uri movie_uri = Uri.parse("content://com.abdulazeez.popularmovies");
-
-               // mP.bulkInsert(movie_uri, cv);
-            //}
             Log.d(LOG_TAG, "FetchWeatherTask Complete. " + cv.length + " Inserted");
             return backdrop;
         } catch (MalformedURLException e) {
