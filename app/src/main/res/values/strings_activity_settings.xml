@@ -16,10 +16,12 @@
 
     <string name="pref_option_header">Choose Sort Order</string>
     <string-array name="pref_option_titles">
+        <item>Favorites</item>
         <item>Sort By Popularity</item>
         <item>Sort By Rating</item>
     </string-array>
     <string-array name="pref_option_values">
+        <item>favorites</item>
         <item>popularity.desc</item>
         <item>vote_average.desc</item>
     </string-array>

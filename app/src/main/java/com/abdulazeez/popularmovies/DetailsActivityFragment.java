@@ -13,8 +13,13 @@ import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -53,6 +58,7 @@ import java.util.Set;
 public class DetailsActivityFragment extends Fragment {
 
     public DetailsActivityFragment() {
+                    setHasOptionsMenu(true);
     }
 
     TextView original_title, overview, vote_average, release_date;
@@ -62,9 +68,9 @@ public class DetailsActivityFragment extends Fragment {
     View rootView;
     Bitmap mIcon_val = null;
     List<String> trailer_id = new ArrayList<>();
-    List<String> trailer_key = new ArrayList<>();
+    static List<String> trailer_key = new ArrayList<>();
     List<String> trailer_name = new ArrayList<>();
-
+    String backdrop;
     List<String> review_id = new ArrayList<>();
     List<String> review_author = new ArrayList<>();
     List<String> review_content = new ArrayList<>();
@@ -76,7 +82,8 @@ public class DetailsActivityFragment extends Fragment {
     //Set<String> favorites_set;
     Set<String> get_favorites = new HashSet<>();
     SharedPreference sharedPreference = new SharedPreference();
-
+    ShareActionProvider mShareActionProvider;
+    MenuItem menuItem;
 
 
     @Override
@@ -101,7 +108,7 @@ public class DetailsActivityFragment extends Fragment {
         overview.setText(intent.getStringExtra("overview"));
         vote_average.setText(" "+intent.getStringExtra("vote_average"));
         release_date.setText(" " + intent.getStringExtra("release_date"));
-
+        backdrop = intent.getStringExtra("backdrop").toString();
         lv_trailer = (ListView) rootView.findViewById(R.id.lv_trailers);
         lv_reviews = (ListView) rootView.findViewById(R.id.lv_reviews);
 
@@ -109,30 +116,15 @@ public class DetailsActivityFragment extends Fragment {
         btn_favorite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-             /*   SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = sharedPref.edit();
-                Set<String> favorites_set = sharedPref.getStringSet("favorited", null);
-                favorites_list.add(movie_id);
 
-                if(favorites_set == null){
-                    favorites_set = new HashSet<>();
-                    //favorites_set.addAll(favorites_list);
-                    //editor.putStringSet("favorited",favorites_set);
-                    }
-                else {
-                    favorites_set.addAll(favorites_list);
-                    Log.v("Button.OnClick", "save_favorites " + favorites_set);
-                    editor.putStringSet("favorited", favorites_set);
-                }
-                editor.commit();
-                //putStringArrayList("favorites", favorites);*/
-                Fields fields = new Fields(movie_id, original_title.getText().toString(), overview.getText().toString(),
+                Fields fields = new Fields(movie_id, backdrop, original_title.getText().toString(), overview.getText().toString(),
                         vote_average.getText().toString(), release_date.getText().toString());
-                Log.v("Button.OnClick", "See JSON Favorites " + fields.toString());
+
 
                 sharedPreference.addFavorite(getActivity(), fields);
+                Log.v("Button.OnClick", "See JSON Favorites " + sharedPreference.getFavorites(getActivity()));
                 Toast.makeText(getActivity(),
-                        "",
+                        "This selection has been saved in your favorites list",
                         Toast.LENGTH_SHORT).show();
 
 
@@ -150,7 +142,7 @@ public class DetailsActivityFragment extends Fragment {
             new GetReviewTask().execute(movie_id);
         }
 
-            lv_trailer.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+      lv_trailer.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     Uri uri = Uri.parse("https://www.youtube.com/watch?v=").buildUpon()
@@ -199,13 +191,13 @@ public class DetailsActivityFragment extends Fragment {
                 conn.connect();
                 BufferedReader br;
                 InputStream in;
-                String review_json = null;
+                String review_json;
 
 
                 in = conn.getInputStream();
                 br = new BufferedReader(new InputStreamReader(in));
                 StringBuilder sb = new StringBuilder();
-                String line = null;
+                String line;
 
                 while((line = br.readLine()) !=null){
                     sb.append(line)
@@ -219,16 +211,16 @@ public class DetailsActivityFragment extends Fragment {
                     JSONObject obj2 = result.getJSONObject(i);
                     review_id_string = obj2.getString(ID);
                     review_id.add(review_id_string);
-                    Log.v("BackgroundTask", review_id.get(i));
+                    //Log.v("BackgroundTask", review_id.get(i));
                     review_author_string = obj2.getString(AUTHOR);
                     review_author.add(review_author_string);
-                    Log.v("BackgroundTask", review_author.get(i));
+                    //Log.v("BackgroundTask", review_author.get(i));
                     review_content_string = obj2.getString(CONTENT);
                     review_content.add(review_content_string);
-                    Log.v("BackgroundTask", review_content.get(i));
+                    //Log.v("BackgroundTask", review_content.get(i));
                     review_url_string = obj2.getString(URL);
                     review_url.add(review_url_string);
-                    Log.v("BackgroundTask", review_url.get(i));
+                    //Log.v("BackgroundTask", review_url.get(i));
                 }
 
             }catch(MalformedURLException e)
@@ -303,13 +295,13 @@ public class DetailsActivityFragment extends Fragment {
                     JSONObject obj2 = result.getJSONObject(i);
                     id = obj2.getString(ID);
                     trailer_id.add(id);
-                    Log.v("BackgroundTask", trailer_id.get(i));
+                    //Log.v("BackgroundTask", trailer_id.get(i));
                     key = obj2.getString(KEY);
                     trailer_key.add(key);
-                    Log.v("BackgroundTask", trailer_key.get(i));
+                    //Log.v("BackgroundTask", trailer_key.get(i));
                     name = obj2.getString(NAME);
                     trailer_name.add(name);
-                    Log.v("BackgroundTask", trailer_name.get(i));
+                    //Log.v("BackgroundTask", trailer_name.get(i));
                   }
 
             }catch(MalformedURLException e)
@@ -395,4 +387,41 @@ public class DetailsActivityFragment extends Fragment {
         outState.putParcelable("mIcon_val", mIcon_val);
         super.onSaveInstanceState(outState);
     }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+
+        inflater.inflate(R.menu.menu_detail_fragment, menu);
+
+        // Retrieve the share menu item
+                   menuItem = menu.findItem(R.id.menu_item_share);
+
+        // Get the provider and hold onto it to set/change the share intent.
+                    mShareActionProvider =
+                                    (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
+
+                            // Attach an intent to this ShareActionProvider.  You can update this at any time,
+                                    // like when the user selects a new piece of data they might like to share.
+                                            if (mShareActionProvider != null ) {
+                            mShareActionProvider.setShareIntent(createShareIntent());
+                        } else {
+                            Log.d("ShareIntent", "Share Action Provider is null?");
+                        }
+    }
+
+    private Intent createShareIntent() {
+        Log.v("TrailerKey", " "+trailer_key.get(0));
+                    Uri uri = Uri.parse("https://www.youtube.com/watch?v=").buildUpon()
+                            .appendQueryParameter("v", trailer_key.get(0))
+                            .build();
+
+                    Intent shareIntent = new Intent(Intent.ACTION_VIEW);
+                    //shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+                    //shareIntent.setType("video/*");
+                    shareIntent.setData(uri);
+                    //shareIntent.putExtra(Intent.EXTRA_TEXT,
+                               //     mForecastStr + FORECAST_SHARE_HASHTAG);
+                   return shareIntent;
+                }
 }

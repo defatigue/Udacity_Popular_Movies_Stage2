@@ -64,7 +64,8 @@ public class MainActivityFragment extends Fragment {
     ArrayList<String> overview = new ArrayList<>();
     ArrayList<String> vote_average = new ArrayList<>();
     ArrayList<String> release_date = new ArrayList<>();
-
+    SharedPreference sharedPreference;
+    List<Fields> favorites;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -76,40 +77,76 @@ public class MainActivityFragment extends Fragment {
         //Get the default/saved settings data
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sort = sp.getString("sort_list", "popularity.desc");
-if(savedInstanceState != null){
-    //List<String> backdrop = new ArrayList<>();
-    movie_id = savedInstanceState.getStringArrayList("id");
-    backdrop = savedInstanceState.getStringArrayList("backdrop");
-    original_title = savedInstanceState.getStringArrayList("original_title");
-    overview = savedInstanceState.getStringArrayList("overview");
-    vote_average = savedInstanceState.getStringArrayList("vote_average");
-    release_date = savedInstanceState.getStringArrayList("release_date");
-    mMovieAdapter = new ImageAdapter(getActivity(), backdrop);
-    gridview.setAdapter(mMovieAdapter);
-
-}
-            else {
-                    getPoster();
-                        }
+        Log.v("getSort", " "+sort);
+        if(sort.matches("favorites")){
+            // Get favorite items from SharedPreferences.
+            sharedPreference = new SharedPreference();
+            favorites = sharedPreference.getFavorites(getActivity());
+            Log.v("getFav", " "+favorites);
 
 
-
-        gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View v,
-                                    int position, long id) {
-
-                Intent intent = new Intent(getActivity(), DetailsActivity.class)
-                        .putExtra("id", movie_id.get(position))
-                        .putExtra("backdrop", backdrop.get(position))
-                        .putExtra("original_title", original_title.get(position))
-                        .putExtra("overview", overview.get(position))
-                        .putExtra("vote_average", vote_average.get(position))
-                        .putExtra("release_date", release_date.get(position));
-                startActivity(intent);
-                // Toast.makeText(getActivity(), "" + position,
-                //         Toast.LENGTH_SHORT).show();
+            if (favorites == null) {
+                Toast.makeText(getActivity(),
+                        "Your favourites selection list is empty",
+                        Toast.LENGTH_SHORT).show();
             }
-        });
+                if (favorites.size() == 0) {
+                    Toast.makeText(getActivity(),
+                            "There is no item in your favorites list",
+                            Toast.LENGTH_SHORT).show();
+                }
+
+                //favoriteList = (ListView) view.findViewById(R.id.list_product);
+                //if (favorites != null) {
+
+                    for(int i = 0; i< favorites.size(); i++){
+                        movie_id.add(favorites.get(i).getId());
+                        backdrop.add(favorites.get(i).getBackdrop());
+                        original_title.add(favorites.get(i).getOriginalTitle());
+                        overview.add(favorites.get(i).getOverview());
+                        vote_average.add(favorites.get(i).getVoteAverage());
+                        release_date.add(favorites.get(i).getReleaseDate());
+                        }
+            Log.v("BackDrop", "GetBackDrop "+backdrop);
+
+                    mMovieAdapter = new ImageAdapter(getActivity(), backdrop);
+                    gridview.setAdapter(mMovieAdapter);
+               // }
+            }
+
+    else {
+                if (savedInstanceState != null) {
+                    //List<String> backdrop = new ArrayList<>();
+                    movie_id = savedInstanceState.getStringArrayList("id");
+                    backdrop = savedInstanceState.getStringArrayList("backdrop");
+                    original_title = savedInstanceState.getStringArrayList("original_title");
+                    overview = savedInstanceState.getStringArrayList("overview");
+                    vote_average = savedInstanceState.getStringArrayList("vote_average");
+                    release_date = savedInstanceState.getStringArrayList("release_date");
+                    mMovieAdapter = new ImageAdapter(getActivity(), backdrop);
+                    gridview.setAdapter(mMovieAdapter);
+
+                } else {
+                    getPoster();
+                }
+            }
+
+            gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                public void onItemClick(AdapterView<?> parent, View v,
+                                        int position, long id) {
+
+                    Intent intent = new Intent(getActivity(), DetailsActivity.class)
+                            .putExtra("id", movie_id.get(position))
+                            .putExtra("backdrop", backdrop.get(position))
+                            .putExtra("original_title", original_title.get(position))
+                            .putExtra("overview", overview.get(position))
+                            .putExtra("vote_average", vote_average.get(position))
+                            .putExtra("release_date", release_date.get(position));
+                    startActivity(intent);
+                    // Toast.makeText(getActivity(), "" + position,
+                    //         Toast.LENGTH_SHORT).show();
+                }
+            });
 
         return rootView;
     }
