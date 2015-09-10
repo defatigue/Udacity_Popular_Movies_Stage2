@@ -77,12 +77,12 @@ public class MainActivityFragment extends Fragment {
         //Get the default/saved settings data
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sort = sp.getString("sort_list", "popularity.desc");
-        Log.v("getSort", " "+sort);
+        //Log.v("getSort", " "+sort);
         if(sort.matches("favorites")){
             // Get favorite items from SharedPreferences.
             sharedPreference = new SharedPreference();
             favorites = sharedPreference.getFavorites(getActivity());
-            Log.v("getFav", " "+favorites);
+            //Log.v("getFav", " "+favorites);
 
 
             if (favorites == null) {
@@ -96,9 +96,6 @@ public class MainActivityFragment extends Fragment {
                             Toast.LENGTH_SHORT).show();
                 }
 
-                //favoriteList = (ListView) view.findViewById(R.id.list_product);
-                //if (favorites != null) {
-
                     for(int i = 0; i< favorites.size(); i++){
                         movie_id.add(favorites.get(i).getId());
                         backdrop.add(favorites.get(i).getBackdrop());
@@ -107,11 +104,9 @@ public class MainActivityFragment extends Fragment {
                         vote_average.add(favorites.get(i).getVoteAverage());
                         release_date.add(favorites.get(i).getReleaseDate());
                         }
-            Log.v("BackDrop", "GetBackDrop "+backdrop);
 
                     mMovieAdapter = new ImageAdapter(getActivity(), backdrop);
                     gridview.setAdapter(mMovieAdapter);
-               // }
             }
 
     else {
@@ -152,11 +147,6 @@ public class MainActivityFragment extends Fragment {
     }
 
     private void getPoster() {
-        /*FetchMovieTask movieTask = new FetchMovieTask();
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String location = prefs.getString(getString(R.string.pref_location_key),
-                getString(R.string.pref_location_default));
-        movieTask.execute(location);*/
         //Get the default/saved settings data
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sort = sp.getString("sort_list", "popularity.desc");
@@ -165,8 +155,6 @@ public class MainActivityFragment extends Fragment {
                     getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
             if (networkInfo != null && networkInfo.isConnected()) {
-                //Send current sort preference to background task
-                //new FetchMovieTask().execute(sort);
 
                 FetchMovieTask fetchMovieTask = new FetchMovieTask(getActivity(), gridview);
                 movie_id = fetchMovieTask.getMovieId();
@@ -216,22 +204,6 @@ public class MainActivityFragment extends Fragment {
                         }while (MovieCursor.moveToNext());
                     }
                 }
-               /* MovieCursor.moveToFirst();
-                while (MovieCursor.isAfterLast() == false){
-                   // movie_id_string = MovieCursor.getString(MovieCursor.getColumnIndex("id"));
-                   // movie_id.add(movie_id_string);
-                    backdrop_string = MovieCursor.getString(MovieCursor.getColumnIndex("backdrop"));
-                    Log.v("BackDrop Cursor", backdrop_string);
-                    backdrop.add(backdrop_string);
-                    //original_title_string = MovieCursor.getString(MovieCursor.getColumnIndex("movie_title"));
-                    //original_title.add(original_title_string);
-                    //overview_string = MovieCursor.getString(MovieCursor.getColumnIndex("synopsis"));
-                    //overview.add(overview_string);
-                    //vote_average_string = MovieCursor.getString(MovieCursor.getColumnIndex("vote_average"));
-                    //vote_average.add(vote_average_string);
-                    //release_date_string = MovieCursor.getString(MovieCursor.getColumnIndex("release_date"));
-                    //release_date.add(release_date_string);
-                    }*/
                 mMovieAdapter = new ImageAdapter(getActivity(), backdrop);
                 gridview.setAdapter(mMovieAdapter);
                 Toast.makeText(getActivity(), "No Internet Connectivity Detected",
@@ -245,117 +217,6 @@ public class MainActivityFragment extends Fragment {
         super.onStart();
         //getPoster();
     }
-
- /*   //Fetch data from internet using AsyncTask
-    public class FetchMovieTask extends AsyncTask<String, Void, List<String>> {
-        final String LOG_TAG = MainActivityFragment.class.getSimpleName();
-        ProgressDialog progress;
-
-        @Override
-        protected List<String> doInBackground(String... view) {
-
-            //String val = view[0];
-            final String BASE_URL = "https://api.themoviedb.org/3/discover/movie?";
-            final String API_KEY = "api_key";
-            final String QUERY_PARAM = "sort_by";
-
-            String sort_by = view[0];
-            HttpURLConnection http = null;
-            BufferedReader br;
-            InputStream is = null;
-            String movieJson;
-
-            //Building the URI
-            String my_uri = Uri.parse(BASE_URL).buildUpon()
-                        .appendQueryParameter(QUERY_PARAM, sort_by)
-                        //.appendQueryParameter(API_KEY, "INSERT_API_KEY")
-                        .appendQueryParameter(API_KEY, "173bbb14e0161501f7da931746c0d538")
-                    .build().toString();
-            //Log.v(LOG_TAG, "URI " + my_uri);
-
-
-            try {
-                URL url = new URL(my_uri);
-                http = (HttpURLConnection) url.openConnection();
-                http.setRequestMethod("GET");
-                http.connect();
-                is = http.getInputStream();
-                br = new BufferedReader(new InputStreamReader(is));
-                StringBuilder sb = new StringBuilder();
-
-                String line;
-                while((line = br.readLine()) != null){
-                    sb.append(line).append("\n");
-                }
-                movieJson = sb.toString();
-
-                JSONObject obj = new JSONObject(movieJson);
-                JSONArray jarray = obj.getJSONArray("results");
-                //Log.v(LOG_TAG, "jsonArray "+jarray);
-                String backdrop_text;
-                String original_title_text;
-                String overview_text;
-                String vote_average_text;
-                String release_date_text;
-                String id_text;
-
-                for(int i = 0; i < jarray.length(); i++){
-                    JSONObject ret = jarray.getJSONObject(i);
-                    backdrop_text = ret.getString("poster_path");
-                    backdrop.add(backdrop_text);
-                    original_title_text = ret.getString("original_title");
-                    original_title.add(original_title_text);
-                    overview_text = ret.getString("overview");
-                    overview.add(overview_text);
-                    vote_average_text = ret.getString("vote_average");
-                    vote_average.add(vote_average_text);
-                    release_date_text = ret.getString("release_date");
-                    release_date.add(release_date_text);
-                    id_text = ret.getString("id");
-                    movie_id.add(id_text);
-
-                    //Log.v(LOG_TAG, "json "+backdrop);
-                }
-                return backdrop;
-            } catch (MalformedURLException e) {
-                Log.e(LOG_TAG, "doInBackground ",e);
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "doInBackground ", e);
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, "doInBackground", e);
-            } finally {
-                assert http != null;
-                http.disconnect();
-                if(is != null)
-                    try {
-                        is.close();
-                    } catch (IOException e) {
-                        Log.e(LOG_TAG, "InputStream Closure ", e);
-                    }
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(List<String> string) {
-            super.onPostExecute(string);
-            if(progress != null)
-                progress.dismiss();
-            mMovieAdapter = new ImageAdapter(getActivity(), string);
-            gridview.setAdapter(mMovieAdapter);
-
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            progress = new ProgressDialog(getActivity());
-            progress.setMessage("Loading... Please wait.");
-            progress.show();
-        }
-    }
-    */
 
     @Override
     public void onSaveInstanceState(Bundle outState) {

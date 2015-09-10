@@ -61,11 +61,7 @@ import java.util.Set;
  */
 public class DetailsActivityFragment extends Fragment{
 
-    public DetailsActivityFragment() {
-        setHasOptionsMenu(true);
-    }
 
-    private static final int DETAIL_LOADER = 0;
 
     private static final String LOG_TAG = DetailsActivityFragment.class.getSimpleName();
 
@@ -86,13 +82,13 @@ public class DetailsActivityFragment extends Fragment{
     ListAdapter adapter;
     String movie_id;
     Button btn_favorite;
-    List<Fields> products = new ArrayList<>();
-    //Set<String> favorites_set;
-    Set<String> get_favorites = new HashSet<>();
     SharedPreference sharedPreference = new SharedPreference();
     ShareActionProvider mShareActionProvider;
     MenuItem menuItem;
 
+    public DetailsActivityFragment() {
+        setHasOptionsMenu(true);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -113,30 +109,25 @@ public class DetailsActivityFragment extends Fragment{
         //Log.v("DeatailActivity", "movie_id " + movie_id);
         original_title.setText(intent.getStringExtra("original_title"));
         overview.setText(intent.getStringExtra("overview"));
-        vote_average.setText(" " + intent.getStringExtra("vote_average"));
-        release_date.setText(" " + intent.getStringExtra("release_date"));
+        vote_average.setText(intent.getStringExtra("vote_average"));
+        release_date.setText(intent.getStringExtra("release_date"));
         backdrop = intent.getStringExtra("backdrop").toString();
         lv_trailer = (ListView) rootView.findViewById(R.id.lv_trailers);
         lv_reviews = (ListView) rootView.findViewById(R.id.lv_reviews);
 
+         btn_favorite.setOnClickListener(new View.OnClickListener() {
+             @Override
+             public void onClick(View v) {
 
-        btn_favorite.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Fields fields = new Fields(movie_id, backdrop, original_title.getText().toString(), overview.getText().toString(),
-                        vote_average.getText().toString(), release_date.getText().toString());
-
-
-                sharedPreference.addFavorite(getActivity(), fields);
-                Log.v("Button.OnClick", "See JSON Favorites " + sharedPreference.getFavorites(getActivity()));
-                Toast.makeText(getActivity(),
-                        "This selection has been saved in your favorites list",
-                        Toast.LENGTH_SHORT).show();
-
-
-            }
-        });
+                 Fields fields = new Fields(movie_id, backdrop, original_title.getText().toString(), overview.getText().toString(),
+                         vote_average.getText().toString(), release_date.getText().toString());
+                 checkFavoriteItem(fields);
+                 sharedPreference.addFavorite(getActivity(), fields);
+                 Toast.makeText(getActivity(),
+                         "This selection has been saved in your favorites list",
+                         Toast.LENGTH_SHORT).show();
+                    }
+                        });
 
 
         if (savedInstanceState != null) {
@@ -155,11 +146,12 @@ public class DetailsActivityFragment extends Fragment{
             lv_reviews.setAdapter(adapter);
             } else {
             new GetImageTask(iv_poster).execute(intent.getStringExtra("backdrop").toString());
-            new GetTrailerTask().execute(movie_id);
+            GetTrailerTask gettrailertask = new GetTrailerTask();
+            gettrailertask.execute(movie_id);
             new GetReviewTask().execute(movie_id);
         }
 
-        lv_trailer.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+    lv_trailer.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Uri uri = Uri.parse("https://www.youtube.com/watch?v=").buildUpon()
@@ -198,6 +190,7 @@ public class DetailsActivityFragment extends Fragment{
             try {
                 String new_url = Uri.parse(BASE_URL).buildUpon()
                         .appendQueryParameter(API_KEY, "API_KEY")
+
                         .build().toString();
                 //Log.v("bitmap", new_url.toString());
                 URL url = new URL(new_url);
@@ -256,7 +249,7 @@ public class DetailsActivityFragment extends Fragment{
             super.onPostExecute(strings);
 
             adapter = new ArrayAdapter(getActivity(), R.layout.list_text, R.id.tv_list, strings);
-            Log.v("BackgroundTask", " " + strings);
+            //Log.v("BackgroundTask", " " + strings);
             lv_reviews.setAdapter(adapter);
         }
     }
@@ -264,6 +257,9 @@ public class DetailsActivityFragment extends Fragment{
 
     class GetTrailerTask extends AsyncTask<String, Void, List<String>> {
 
+        ArrayList<String> trailer_id_async = new ArrayList<>();
+        ArrayList<String> trailer_name_async = new ArrayList<>();
+        ArrayList<String> trailer_key_async = new ArrayList<>();
 
         @Override
         protected List<String> doInBackground(String... val) {
@@ -280,6 +276,7 @@ public class DetailsActivityFragment extends Fragment{
             try {
                 String new_url = Uri.parse(BASE_URL).buildUpon()
                         .appendQueryParameter(API_KEY, "API_KEY")
+
                         .build().toString();
                 //Log.v("bitmap", new_url.toString());
                 URL url = new URL(new_url);
@@ -307,15 +304,19 @@ public class DetailsActivityFragment extends Fragment{
                 for (int i = 0; i < result.length(); i++) {
                     JSONObject obj2 = result.getJSONObject(i);
                     id = obj2.getString(ID);
-                    trailer_id.add(id);
+                    trailer_id_async.add(id);
                     //Log.v("BackgroundTask", trailer_id.get(i));
                     key = obj2.getString(KEY);
-                    trailer_key.add(key);
-                    //Log.v("BackgroundTask", trailer_key.get(i));
+                    trailer_key_async.add(key);
+                    //Log.v("BackgroundTask", trailer_key_async.get(i));
                     name = obj2.getString(NAME);
-                    trailer_name.add(name);
+                    trailer_name_async.add(name);
                     //Log.v("BackgroundTask", trailer_name.get(i));
                 }
+
+                trailer_key = trailer_key_async;
+                Log.v("getTrailerKey", " " + trailer_key);
+                return trailer_name_async;
 
             } catch (MalformedURLException e) {
                 Log.e("Async", "MalformedURLException", e);
@@ -327,15 +328,18 @@ public class DetailsActivityFragment extends Fragment{
             } finally {
             }
 
-            return trailer_name;
+            return null;
         }
+
+
+
 
         @Override
         protected void onPostExecute(List<String> strings) {
             super.onPostExecute(strings);
 
             adapter = new ArrayAdapter(getActivity(), R.layout.list_text, R.id.tv_list, strings);
-            Log.v("BackgroundTask", " " + strings);
+            //Log.v("BackgroundTask", " " + strings);
             lv_trailer.setAdapter(adapter);
         }
     }
@@ -418,17 +422,22 @@ public class DetailsActivityFragment extends Fragment{
         mShareActionProvider =
                 (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
 
-        // Attach an intent to this ShareActionProvider.  You can update this at any time,
-        // like when the user selects a new piece of data they might like to share.
-        if (mShareActionProvider != null) {
+
+        if (mShareActionProvider != null && trailer_key.size() > 0) {
             mShareActionProvider.setShareIntent(createShareIntent());
         } else {
             Log.d("ShareIntent", "Share Action Provider is null?");
         }
+
+
+
+
     }
 
+
+
     private Intent createShareIntent() {
-        Log.v("TrailerKey", " " + trailer_key.get(0));
+       // Log.v("CreateShareIntent", " " + trailer_key.size());
         Uri uri = Uri.parse("https://www.youtube.com/watch?v=").buildUpon()
                 .appendQueryParameter("v", trailer_key.get(0))
                 .build();
@@ -438,6 +447,26 @@ public class DetailsActivityFragment extends Fragment{
         return shareIntent;
     }
 
+
+    /*Checks whether a particular product exists in SharedPreferences*/
+    public boolean checkFavoriteItem(Fields checkField) {
+        boolean check = false;
+        List<Fields> favorites = sharedPreference.getFavorites(getActivity());
+        if (favorites != null) {
+            //Log.v("getFavoritesBefore", ""+favorites.size());
+            for(int i = 0; i<favorites.size(); i++){
+                if((favorites.get(i).toString()).equals(checkField.toString())){
+                    favorites.remove(favorites.get(i));
+                    //Log.v("getFavoritesMiddle", "" + favorites.size());
+                    new SharedPreference().saveFavorites(getActivity(), favorites);
+                    //Log.v("getFavoritesAfter", "" + new SharedPreference().getFavorites(getActivity()).size());
+                    check = true;
+                    break;
+                }
+            }
+        }
+        return check;
+    }
 
     }
 

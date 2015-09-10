@@ -88,13 +88,6 @@ public class Fields {
         this.vote_average = vote_average;
     }
 
-  /*  @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + id;
-        return result;
-    }*/
 
     @Override
     public boolean equals(Object obj) {
@@ -112,9 +105,9 @@ public class Fields {
 
     @Override
     public String toString() {
-        return "Fields [id=" + id + ", backdrop=" + backdrop + ", original_title="
-                + original_title + ", overview=" + overview + ", release_date=" +release_date
-                 + ", vote_average=" + vote_average + "]";
+        return "Fields [id="+id+", backdrop="+backdrop+", original_title="
+                +original_title+", overview="+overview+", release_date="
+                +release_date+", vote_average="+vote_average+"]";
     }
 }
 

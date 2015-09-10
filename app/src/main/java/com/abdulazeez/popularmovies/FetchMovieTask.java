@@ -106,6 +106,7 @@ public class FetchMovieTask extends AsyncTask<String, Void, List<String>> {
         String my_uri = Uri.parse(BASE_URL).buildUpon()
                 .appendQueryParameter(QUERY_PARAM, sort_by)
                         .appendQueryParameter(API_KEY, "INSERT_API_KEY")
+
                 .build().toString();
         //Log.v(LOG_TAG, "URI " + my_uri);
 
@@ -190,6 +191,7 @@ public class FetchMovieTask extends AsyncTask<String, Void, List<String>> {
         mMovieAdapter = new ImageAdapter(mContext, string);
         gridview.setAdapter(mMovieAdapter);
         Uri movie_uri = MovieContract.MovieEntry.CONTENT_URI;
+        delete(movie_uri, null, null);
         bulkInsert(movie_uri, cv);
     }
 
@@ -204,7 +206,6 @@ public class FetchMovieTask extends AsyncTask<String, Void, List<String>> {
     public int bulkInsert(Uri uri, ContentValues[] values) {
         final UriMatcher sUriMatcher = buildUriMatcher();
         MovieDbHelper mOpenHelper = new MovieDbHelper(mContext);
-        Log.v("bulkInsert", "Show Context " + mOpenHelper);
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
         switch (match) {
@@ -214,9 +215,9 @@ public class FetchMovieTask extends AsyncTask<String, Void, List<String>> {
                 try {
                     for (ContentValues value : values) {
                         //normalizeDate(value);
-                        Log.v("bulkInsert", "Show Values " + values);
+                        //Log.v("bulkInsert", "Show Values " + values);
                         long _id = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, value);
-                        Log.v("bulkInsert", "Show _id " + _id);
+                        //Log.v("bulkInsert", "Show _id " + _id);
                         if (_id != -1) {
                             returnCount++;
                         }
@@ -249,5 +250,26 @@ public class FetchMovieTask extends AsyncTask<String, Void, List<String>> {
 
         // 3) Return the new matcher!
         return matcher;
+    }
+
+    public int delete(Uri uri, String selection, String[] selectionArgs) {
+        final UriMatcher sUriMatcher = buildUriMatcher();
+        MovieDbHelper mOpenHelper = new MovieDbHelper(mContext);
+        final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        final int match = sUriMatcher.match(uri);
+        db.beginTransaction();
+        int returnCount = 0;
+        try {
+            long _id = db.delete(MovieContract.MovieEntry.TABLE_NAME, null, null);
+            if (_id != -1) {
+                returnCount++;
+            }
+
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+        mContext.getContentResolver().notifyChange(uri, null);
+        return returnCount;
     }
 }

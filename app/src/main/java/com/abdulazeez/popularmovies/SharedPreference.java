@@ -10,6 +10,8 @@ import java.util.List;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.util.Log;
+
 import com.google.gson.Gson;
 
 public class SharedPreference {
@@ -48,10 +50,45 @@ public class SharedPreference {
 
     public void removeFavorite(Context context, Fields product) {
         ArrayList<Fields> favorites = getFavorites(context);
-        if (favorites != null) {
+        Log.v("getFavouriteBefore", " "+favorites.size());
+          if (favorites != null) {
             favorites.remove(product);
             saveFavorites(context, favorites);
+              Log.v("getFavouriteAfter", " " + favorites.size());
         }
+    }
+
+    public void clearFavorites(Context context) {
+        ArrayList<Fields> favorites = getFavorites(context);
+        favorites.clear();
+            saveFavorites(context, favorites);
+        }
+
+    public boolean getFavorite(Context context, Fields field) {
+        SharedPreferences settings;
+        List<Fields> favorites;
+        boolean ret = false;
+
+        settings = context.getSharedPreferences(PREFS_NAME,
+                Context.MODE_PRIVATE);
+
+        if (settings.contains(FAVORITES)) {
+            String jsonFavorites = settings.getString(FAVORITES, null);
+            Gson gson = new Gson();
+            Fields[] favoriteItems = gson.fromJson(jsonFavorites,
+                    Fields[].class);
+
+            favorites = Arrays.asList(favoriteItems);
+            favorites = new ArrayList<>(favorites);
+            Log.v("getFavourite", " "+favorites.size());
+            for(int i = 0; i< favorites.size(); i++){
+
+                removeFavorite(context, favorites.get(i));
+                //Log.v("getFavourite", " "+favorites.size());
+            }
+        }
+
+        return ret;
     }
 
     public ArrayList<Fields> getFavorites(Context context) {
@@ -68,7 +105,7 @@ public class SharedPreference {
                     Fields[].class);
 
             favorites = Arrays.asList(favoriteItems);
-            favorites = new ArrayList<Fields>(favorites);
+            favorites = new ArrayList<>(favorites);
         } else
             return null;
 
