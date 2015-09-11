@@ -121,12 +121,19 @@ public class DetailsActivityFragment extends Fragment{
 
                  Fields fields = new Fields(movie_id, backdrop, original_title.getText().toString(), overview.getText().toString(),
                          vote_average.getText().toString(), release_date.getText().toString());
-                 checkFavoriteItem(fields);
-                 sharedPreference.addFavorite(getActivity(), fields);
-                 Toast.makeText(getActivity(),
-                         "This selection has been saved in your favorites list",
-                         Toast.LENGTH_SHORT).show();
-                    }
+                 if (!checkFavoriteItem(fields)) {
+                     sharedPreference.addFavorite(getActivity(), fields);
+                     Toast.makeText(getActivity(),
+                             "This selection has been saved in your favorites list",
+                             Toast.LENGTH_SHORT).show();
+                 }
+                 else {
+                     sharedPreference.removeFavorite(getActivity(), fields);
+                     Toast.makeText(getActivity(),
+                             "This selection has been removed from your favorites list",
+                             Toast.LENGTH_SHORT).show();
+                     }
+                        }
                         });
 
 
@@ -145,9 +152,8 @@ public class DetailsActivityFragment extends Fragment{
             adapter = new ArrayAdapter(getActivity(), R.layout.list_text, R.id.tv_list, review_content);
             lv_reviews.setAdapter(adapter);
             } else {
+            new GetTrailerTask().execute(movie_id);
             new GetImageTask(iv_poster).execute(intent.getStringExtra("backdrop").toString());
-            GetTrailerTask gettrailertask = new GetTrailerTask();
-            gettrailertask.execute(movie_id);
             new GetReviewTask().execute(movie_id);
         }
 
@@ -190,7 +196,6 @@ public class DetailsActivityFragment extends Fragment{
             try {
                 String new_url = Uri.parse(BASE_URL).buildUpon()
                         .appendQueryParameter(API_KEY, "API_KEY")
-
                         .build().toString();
                 //Log.v("bitmap", new_url.toString());
                 URL url = new URL(new_url);
@@ -257,9 +262,6 @@ public class DetailsActivityFragment extends Fragment{
 
     class GetTrailerTask extends AsyncTask<String, Void, List<String>> {
 
-        ArrayList<String> trailer_id_async = new ArrayList<>();
-        ArrayList<String> trailer_name_async = new ArrayList<>();
-        ArrayList<String> trailer_key_async = new ArrayList<>();
 
         @Override
         protected List<String> doInBackground(String... val) {
@@ -276,7 +278,6 @@ public class DetailsActivityFragment extends Fragment{
             try {
                 String new_url = Uri.parse(BASE_URL).buildUpon()
                         .appendQueryParameter(API_KEY, "API_KEY")
-
                         .build().toString();
                 //Log.v("bitmap", new_url.toString());
                 URL url = new URL(new_url);
@@ -304,19 +305,17 @@ public class DetailsActivityFragment extends Fragment{
                 for (int i = 0; i < result.length(); i++) {
                     JSONObject obj2 = result.getJSONObject(i);
                     id = obj2.getString(ID);
-                    trailer_id_async.add(id);
+                    trailer_id.add(id);
                     //Log.v("BackgroundTask", trailer_id.get(i));
                     key = obj2.getString(KEY);
-                    trailer_key_async.add(key);
+                    trailer_key.add(key);
                     //Log.v("BackgroundTask", trailer_key_async.get(i));
                     name = obj2.getString(NAME);
-                    trailer_name_async.add(name);
+                    trailer_name.add(name);
                     //Log.v("BackgroundTask", trailer_name.get(i));
                 }
-
-                trailer_key = trailer_key_async;
-                Log.v("getTrailerKey", " " + trailer_key);
-                return trailer_name_async;
+                //Log.v("getTrailerKey", " " + trailer_key);
+                return trailer_name;
 
             } catch (MalformedURLException e) {
                 Log.e("Async", "MalformedURLException", e);
@@ -375,9 +374,6 @@ public class DetailsActivityFragment extends Fragment{
                 Log.e("Async", "IOException", e);
             } finally {
             }
-
-            //iv_poster.setImageBitmap(mIcon_val);
-
             return mIcon_val;
         }
 
@@ -453,13 +449,8 @@ public class DetailsActivityFragment extends Fragment{
         boolean check = false;
         List<Fields> favorites = sharedPreference.getFavorites(getActivity());
         if (favorites != null) {
-            //Log.v("getFavoritesBefore", ""+favorites.size());
             for(int i = 0; i<favorites.size(); i++){
-                if((favorites.get(i).toString()).equals(checkField.toString())){
-                    favorites.remove(favorites.get(i));
-                    //Log.v("getFavoritesMiddle", "" + favorites.size());
-                    new SharedPreference().saveFavorites(getActivity(), favorites);
-                    //Log.v("getFavoritesAfter", "" + new SharedPreference().getFavorites(getActivity()).size());
+                if ((favorites.get(i).toString()).equals(checkField.toString())){
                     check = true;
                     break;
                 }

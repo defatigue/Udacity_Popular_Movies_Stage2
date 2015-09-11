@@ -50,12 +50,14 @@ public class SharedPreference {
 
     public void removeFavorite(Context context, Fields product) {
         ArrayList<Fields> favorites = getFavorites(context);
-        Log.v("getFavouriteBefore", " "+favorites.size());
           if (favorites != null) {
-            favorites.remove(product);
-            saveFavorites(context, favorites);
-              Log.v("getFavouriteAfter", " " + favorites.size());
-        }
+              for(int i = 0; i<favorites.size(); i++){
+              if(favorites.get(i).toString().equals(product.toString())){
+                  favorites.remove(favorites.get(i));
+                  saveFavorites(context, favorites);
+                 }
+                 }
+            }
     }
 
     public void clearFavorites(Context context) {

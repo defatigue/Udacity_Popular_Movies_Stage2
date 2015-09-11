@@ -106,7 +106,6 @@ public class FetchMovieTask extends AsyncTask<String, Void, List<String>> {
         String my_uri = Uri.parse(BASE_URL).buildUpon()
                 .appendQueryParameter(QUERY_PARAM, sort_by)
                         .appendQueryParameter(API_KEY, "INSERT_API_KEY")
-
                 .build().toString();
         //Log.v(LOG_TAG, "URI " + my_uri);
 
@@ -159,9 +158,6 @@ public class FetchMovieTask extends AsyncTask<String, Void, List<String>> {
                 movieValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, id_text);
                 cv[i] = movieValues;
             }
-
-
-            Log.d(LOG_TAG, "FetchWeatherTask Complete. " + cv.length + " Inserted");
             return backdrop;
         } catch (MalformedURLException e) {
             Log.e(LOG_TAG, "doInBackground ", e);
