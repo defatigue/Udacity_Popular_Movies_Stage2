@@ -9,6 +9,8 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
@@ -112,8 +114,41 @@ public class DetailsActivityFragment extends Fragment{
         vote_average.setText(intent.getStringExtra("vote_average"));
         release_date.setText(intent.getStringExtra("release_date"));
         backdrop = intent.getStringExtra("backdrop").toString();
+        Log.v("DetailActivity", "backdrop " + backdrop);
         lv_trailer = (ListView) rootView.findViewById(R.id.lv_trailers);
         lv_reviews = (ListView) rootView.findViewById(R.id.lv_reviews);
+
+        if (savedInstanceState != null) {
+            mIcon_val = savedInstanceState.getParcelable("mIcon_val");
+            iv_poster.setImageBitmap(mIcon_val);
+            trailer_id = savedInstanceState.getStringArrayList("trailer_id");
+            trailer_key = savedInstanceState.getStringArrayList("trailer_key");
+            trailer_name = savedInstanceState.getStringArrayList("trailer_name");
+            adapter = new ArrayAdapter(getActivity(), R.layout.list_text, R.id.tv_list, trailer_name);
+            lv_trailer.setAdapter(adapter);
+            review_id = savedInstanceState.getStringArrayList("review_id");
+            review_author = savedInstanceState.getStringArrayList("review_author");
+            review_content = savedInstanceState.getStringArrayList("review_content");
+            review_url = savedInstanceState.getStringArrayList("review_url");
+            adapter = new ArrayAdapter(getActivity(), R.layout.list_text, R.id.tv_list, review_content);
+            lv_reviews.setAdapter(adapter);
+        } else {
+            ConnectivityManager connMgr = (ConnectivityManager)
+                    getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+
+            if (networkInfo != null && networkInfo.isConnected()) {
+
+                new GetTrailerTask().execute(movie_id);
+                new GetImageTask(iv_poster).execute(intent.getStringExtra("backdrop").toString());
+                new GetReviewTask().execute(movie_id);
+            }
+            else{
+                Toast.makeText(getActivity(), "No Internet Connectivity Detected",
+                        Toast.LENGTH_SHORT).show();
+            }
+
+        }
 
          btn_favorite.setOnClickListener(new View.OnClickListener() {
              @Override
@@ -137,25 +172,7 @@ public class DetailsActivityFragment extends Fragment{
                         });
 
 
-        if (savedInstanceState != null) {
-            mIcon_val = savedInstanceState.getParcelable("mIcon_val");
-            iv_poster.setImageBitmap(mIcon_val);
-                trailer_id = savedInstanceState.getStringArrayList("trailer_id");
-                trailer_key = savedInstanceState.getStringArrayList("trailer_key");
-                trailer_name = savedInstanceState.getStringArrayList("trailer_name");
-            adapter = new ArrayAdapter(getActivity(), R.layout.list_text, R.id.tv_list, trailer_name);
-            lv_trailer.setAdapter(adapter);
-                review_id = savedInstanceState.getStringArrayList("review_id");
-                review_author = savedInstanceState.getStringArrayList("review_author");
-                review_content = savedInstanceState.getStringArrayList("review_content");
-                review_url = savedInstanceState.getStringArrayList("review_url");
-            adapter = new ArrayAdapter(getActivity(), R.layout.list_text, R.id.tv_list, review_content);
-            lv_reviews.setAdapter(adapter);
-            } else {
-            new GetTrailerTask().execute(movie_id);
-            new GetImageTask(iv_poster).execute(intent.getStringExtra("backdrop").toString());
-            new GetReviewTask().execute(movie_id);
-        }
+
 
     lv_trailer.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
