@@ -60,11 +60,11 @@ public class SharedPreference {
             }
     }
 
-    public void clearFavorites(Context context) {
+   /* public void clearFavorites(Context context) {
         ArrayList<Fields> favorites = getFavorites(context);
         favorites.clear();
             saveFavorites(context, favorites);
-        }
+        }*/
 
     public boolean getFavorite(Context context, Fields field) {
         SharedPreferences settings;
