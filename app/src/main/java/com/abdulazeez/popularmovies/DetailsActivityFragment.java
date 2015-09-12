@@ -106,15 +106,16 @@ public class DetailsActivityFragment extends Fragment{
         vote_average = (TextView) rootView.findViewById(R.id.vote_average);
         release_date = (TextView) rootView.findViewById(R.id.release_date);
         Intent intent = getActivity().getIntent();
-        /* new GetImageTask(iv_poster).execute(intent.getStringExtra("backdrop").toString()); */
-        movie_id = intent.getStringExtra("id");
-        //Log.v("DeatailActivity", "movie_id " + movie_id);
-        original_title.setText(intent.getStringExtra("original_title"));
-        overview.setText(intent.getStringExtra("overview"));
-        vote_average.setText(intent.getStringExtra("vote_average"));
-        release_date.setText(intent.getStringExtra("release_date"));
-        backdrop = intent.getStringExtra("backdrop").toString();
-        Log.v("DetailActivity", "backdrop " + backdrop);
+        if (intent != null || intent.getData() != null) {
+
+            movie_id = intent.getStringExtra("id");
+            original_title.setText(intent.getStringExtra("original_title"));
+            overview.setText(intent.getStringExtra("overview"));
+            vote_average.setText(intent.getStringExtra("vote_average"));
+            release_date.setText(intent.getStringExtra("release_date"));
+            backdrop = intent.getStringExtra("backdrop").toString();
+            Log.v("DetailActivity", "backdrop " + backdrop);
+        }
         lv_trailer = (ListView) rootView.findViewById(R.id.lv_trailers);
         lv_reviews = (ListView) rootView.findViewById(R.id.lv_reviews);
 
@@ -140,7 +141,7 @@ public class DetailsActivityFragment extends Fragment{
             if (networkInfo != null && networkInfo.isConnected()) {
 
                 new GetTrailerTask().execute(movie_id);
-                new GetImageTask(iv_poster).execute(intent.getStringExtra("backdrop").toString());
+                new GetImageTask(iv_poster).execute(backdrop);
                 new GetReviewTask().execute(movie_id);
             }
             else{

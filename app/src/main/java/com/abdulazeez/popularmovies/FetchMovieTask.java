@@ -106,6 +106,7 @@ public class FetchMovieTask extends AsyncTask<String, Void, List<String>> {
         String my_uri = Uri.parse(BASE_URL).buildUpon()
                 .appendQueryParameter(QUERY_PARAM, sort_by)
                         .appendQueryParameter(API_KEY, "INSERT_API_KEY")
+
                 .build().toString();
         //Log.v(LOG_TAG, "URI " + my_uri);
 
