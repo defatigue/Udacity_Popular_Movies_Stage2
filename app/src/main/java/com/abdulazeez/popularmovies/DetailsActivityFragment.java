@@ -113,7 +113,7 @@ public class DetailsActivityFragment extends Fragment{
             overview.setText(intent.getStringExtra("overview"));
             vote_average.setText(intent.getStringExtra("vote_average"));
             release_date.setText(intent.getStringExtra("release_date"));
-            backdrop = intent.getStringExtra("backdrop").toString();
+            //backdrop = intent.getStringExtra("backdrop").toString();
             Log.v("DetailActivity", "backdrop " + backdrop);
         }
         lv_trailer = (ListView) rootView.findViewById(R.id.lv_trailers);
@@ -141,7 +141,9 @@ public class DetailsActivityFragment extends Fragment{
             if (networkInfo != null && networkInfo.isConnected()) {
 
                 new GetTrailerTask().execute(movie_id);
-                new GetImageTask(iv_poster).execute(backdrop);
+                if(intent.getStringExtra("backdrop")!= null) {
+                    new GetImageTask(iv_poster).execute(intent.getStringExtra("backdrop"));
+                }
                 new GetReviewTask().execute(movie_id);
             }
             else{
