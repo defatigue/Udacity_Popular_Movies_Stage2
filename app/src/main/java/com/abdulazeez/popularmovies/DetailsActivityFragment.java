@@ -162,13 +162,15 @@ public class DetailsActivityFragment extends Fragment{
 
             if (networkInfo != null && networkInfo.isConnected()) {
 
-                if(movie_id != null)
-                new GetTrailerTask().execute(movie_id);
+
+
                 if(backdrop != null) {
                     new GetImageTask(iv_poster).execute(backdrop);
                 }
-                if(movie_id != null)
-                new GetReviewTask().execute(movie_id);
+                if(movie_id != null) {
+                    new GetReviewTask().execute(movie_id);
+                    new GetTrailerTask().execute(movie_id);
+                }
             }
             else{
                 Toast.makeText(getActivity(), "No Internet Connectivity Detected",
@@ -379,7 +381,7 @@ public class DetailsActivityFragment extends Fragment{
         @Override
         protected void onPostExecute(List<String> strings) {
             super.onPostExecute(strings);
-            if(trailer_key.size() > 0) {
+            if(mShareActionProvider != null && trailer_key.size() > 0) {
                 mShareActionProvider.setShareIntent(createShareIntent(trailer_key.get(0)));
                 Log.v("From Background", "" + trailer_key.get(0));
             }
