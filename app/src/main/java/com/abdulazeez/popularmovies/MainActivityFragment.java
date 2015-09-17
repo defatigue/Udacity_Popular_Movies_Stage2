@@ -48,6 +48,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.security.auth.callback.Callback;
+
 /**
  * A placeholder fragment containing a simple view.
  */
@@ -66,6 +68,37 @@ public class MainActivityFragment extends Fragment {
     ArrayList<String> release_date = new ArrayList<>();
     SharedPreference sharedPreference;
     List<Fields> favorites;
+
+    private Callbacks mCallbacks = smyCallbacks;
+
+    public interface Callbacks {
+        public void onItemSelected(String id, String backdrop, String title, String overview, String vote, String date);
+    }
+
+    private static Callbacks smyCallbacks = new Callbacks() {
+        @Override
+        public void onItemSelected(String id, String backdrop, String title, String overview, String vote, String date) {
+        }
+    };
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        if (!(activity instanceof Callbacks)) {
+            throw new IllegalStateException(
+                    "Activity must implement fragment's callbacks.");
+        }
+
+        mCallbacks = (Callbacks) activity;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+
+        mCallbacks = smyCallbacks;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -130,16 +163,9 @@ public class MainActivityFragment extends Fragment {
                 public void onItemClick(AdapterView<?> parent, View v,
                                         int position, long id) {
 
-                    Intent intent = new Intent(getActivity(), DetailsActivity.class)
-                            .putExtra("id", movie_id.get(position))
-                            .putExtra("backdrop", backdrop.get(position))
-                            .putExtra("original_title", original_title.get(position))
-                            .putExtra("overview", overview.get(position))
-                            .putExtra("vote_average", vote_average.get(position))
-                            .putExtra("release_date", release_date.get(position));
-                    startActivity(intent);
-                    // Toast.makeText(getActivity(), "" + position,
-                    //         Toast.LENGTH_SHORT).show();
+                        mCallbacks.onItemSelected(movie_id.get(position), backdrop.get(position), original_title.get(position), overview.get(position),  vote_average.get(position), release_date.get(position));
+
+
                 }
             });
 

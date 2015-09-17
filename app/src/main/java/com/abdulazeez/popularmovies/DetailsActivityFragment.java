@@ -88,6 +88,10 @@ public class DetailsActivityFragment extends Fragment{
     ShareActionProvider mShareActionProvider;
     MenuItem menuItem;
 
+
+
+
+
     public DetailsActivityFragment() {
         setHasOptionsMenu(true);
     }
@@ -105,17 +109,35 @@ public class DetailsActivityFragment extends Fragment{
         overview = (TextView) rootView.findViewById(R.id.overview);
         vote_average = (TextView) rootView.findViewById(R.id.vote_average);
         release_date = (TextView) rootView.findViewById(R.id.release_date);
+
         Intent intent = getActivity().getIntent();
-        if (intent != null || intent.getData() != null) {
+
+       if (getArguments() != null){
+            movie_id = getArguments().getString("id");
+       //    Log.v("movie_id", ""+movie_id);
+            original_title.setText(getArguments().getString("original_title"));
+           Log.v("original_title", "" + original_title);
+            overview.setText(getArguments().getString("overview"));
+           Log.v("overview", "" + overview);
+            vote_average.setText(getArguments().getString("vote_average"));
+           Log.v("vote_average", "" + vote_average);
+            release_date.setText(getArguments().getString("release_date"));
+        //   Log.v("release_date", "" + release_date);
+            backdrop = getArguments().getString("backdrop");
+
+        }
+        else if (intent != null || intent.getData() != null) {
 
             movie_id = intent.getStringExtra("id");
             original_title.setText(intent.getStringExtra("original_title"));
             overview.setText(intent.getStringExtra("overview"));
             vote_average.setText(intent.getStringExtra("vote_average"));
             release_date.setText(intent.getStringExtra("release_date"));
-            //backdrop = intent.getStringExtra("backdrop").toString();
-            Log.v("DetailActivity", "backdrop " + backdrop);
+            backdrop = intent.getStringExtra("backdrop");
+            //Log.v("DetailActivity", "backdrop " + backdrop);
         }
+
+
         lv_trailer = (ListView) rootView.findViewById(R.id.lv_trailers);
         lv_reviews = (ListView) rootView.findViewById(R.id.lv_reviews);
 
@@ -140,10 +162,12 @@ public class DetailsActivityFragment extends Fragment{
 
             if (networkInfo != null && networkInfo.isConnected()) {
 
+                if(movie_id != null)
                 new GetTrailerTask().execute(movie_id);
-                if(intent.getStringExtra("backdrop")!= null) {
-                    new GetImageTask(iv_poster).execute(intent.getStringExtra("backdrop"));
+                if(backdrop != null) {
+                    new GetImageTask(iv_poster).execute(backdrop);
                 }
+                if(movie_id != null)
                 new GetReviewTask().execute(movie_id);
             }
             else{
@@ -164,33 +188,32 @@ public class DetailsActivityFragment extends Fragment{
                      Toast.makeText(getActivity(),
                              "This selection has been saved in your favorites list",
                              Toast.LENGTH_SHORT).show();
-                 }
-                 else {
+                 } else {
                      sharedPreference.removeFavorite(getActivity(), fields);
                      Toast.makeText(getActivity(),
                              "This selection has been removed from your favorites list",
                              Toast.LENGTH_SHORT).show();
-                     }
-                        }
-                        });
+                 }
+             }
+         });
 
 
 
 
     lv_trailer.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Uri uri = Uri.parse("https://www.youtube.com/watch?v=").buildUpon()
-                        .appendQueryParameter("v", trailer_key.get(position))
-                        .build();
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(uri);
-                if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
-                    startActivity(intent);
-                } else
-                    Log.e("DetailsActivityFragment", "Could not resolve URI");
-            }
-        });
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            Uri uri = Uri.parse("https://www.youtube.com/watch?v=").buildUpon()
+                    .appendQueryParameter("v", trailer_key.get(position))
+                    .build();
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(uri);
+            if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
+                startActivity(intent);
+            } else
+                Log.e("DetailsActivityFragment", "Could not resolve URI");
+        }
+    });
 
 
         return rootView;
@@ -356,7 +379,10 @@ public class DetailsActivityFragment extends Fragment{
         @Override
         protected void onPostExecute(List<String> strings) {
             super.onPostExecute(strings);
-
+            if(trailer_key.size() > 0) {
+                mShareActionProvider.setShareIntent(createShareIntent(trailer_key.get(0)));
+                Log.v("From Background", "" + trailer_key.get(0));
+            }
             adapter = new ArrayAdapter(getActivity(), R.layout.list_text, R.id.tv_list, strings);
             //Log.v("BackgroundTask", " " + strings);
             lv_trailer.setAdapter(adapter);
@@ -439,11 +465,12 @@ public class DetailsActivityFragment extends Fragment{
                 (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
 
 
-        if (mShareActionProvider != null && trailer_key.size() > 0) {
-            mShareActionProvider.setShareIntent(createShareIntent());
+       /* if (mShareActionProvider != null && trailer_key.size() > 0) {
+            mShareActionProvider.setShareIntent(createShareIntent(trailer_key.get(0)));
+            Log.v("From Menu Bar", ""+trailer_key.get(0));
         } else {
             Log.d("ShareIntent", "Share Action Provider is null?");
-        }
+        }*/
 
 
 
@@ -452,12 +479,12 @@ public class DetailsActivityFragment extends Fragment{
 
 
 
-    private Intent createShareIntent() {
+    private Intent createShareIntent(String trailer_key) {
        // Log.v("CreateShareIntent", " " + trailer_key.size());
-        Uri uri = Uri.parse("https://www.youtube.com/watch?v=").buildUpon()
-                .appendQueryParameter("v", trailer_key.get(0))
+        Uri uri = Uri.parse("https://www.youtube.com/watch?").buildUpon()
+                .appendQueryParameter("v", trailer_key)
                 .build();
-
+        Log.v("CreateShareIntent", " " + uri);
         Intent shareIntent = new Intent(Intent.ACTION_VIEW);
         shareIntent.setData(uri);
         return shareIntent;
@@ -478,6 +505,8 @@ public class DetailsActivityFragment extends Fragment{
         }
         return check;
     }
+
+
 
     }
 
